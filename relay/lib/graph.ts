@@ -46,7 +46,12 @@ export async function listChatIds(accessToken: string): Promise<string[]> {
 export async function getMessageByResource(
   resource: string,
   accessToken: string,
-): Promise<{ from?: { user?: { displayName?: string } }; body?: { content?: string }; chatId?: string }> {
+): Promise<{
+  from?: { user?: { id?: string; displayName?: string } };
+  body?: { content?: string };
+  messageType?: string;
+  chatId?: string;
+}> {
   return graphGet(`/${resource}`, accessToken);
 }
 

@@ -54,7 +54,16 @@ export default async (req: Request): Promise<Response> => {
       }
 
       const msg = await getMessageByResource(n.resource, accessToken);
+
+      // Eigene Nachrichten + System-Events nicht pushen.
+      if (msg.from?.user?.id && msg.from.user.id === userId) {
+        continue;
+      }
+      if (msg.messageType && msg.messageType !== "message") {
+        continue;
+      }
       const preview = stripHtml(msg.body?.content ?? "");
+      if (!preview) continue;
       const chatId = msg.chatId ?? chatIdFromResource(n.resource);
       await pushToWatch(user.fcmToken, {
         chatId,
