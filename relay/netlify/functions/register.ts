@@ -25,22 +25,34 @@ export default async (req: Request): Promise<Response> => {
     const userId = (await me(accessToken)).id;
 
     const existing = await getUser(userId);
-    const chatIds = await listChatIds(accessToken);
-    const subscriptions: SubInfo[] = [];
+    const allChatIds = await listChatIds(accessToken);
+    console.log(`register: user=${userId} chats=${allChatIds.length}`);
+
+    // Subscriptions parallel anlegen (Graph validiert jede synchron gegen unseren
+    // Webhook -> sequenziell wuerde die Function timeouten). Auf MAX kappen;
+    // restliche Chats abonniert der Renew-Cron nach.
+    const MAX_SUBS = 20;
+    const chatIds = allChatIds.slice(0, MAX_SUBS);
+    const reused: SubInfo[] = [];
+    const toCreate: string[] = [];
     for (const chatId of chatIds) {
-      // Bestehende Subs wiederverwenden, neue anlegen.
       const prior = existing?.subscriptions.find((s) => s.chatId === chatId);
-      if (prior) {
-        subscriptions.push(prior);
-        continue;
-      }
-      try {
-        const { id, expiry } = await createChatSubscription(chatId, accessToken);
-        subscriptions.push({ id, chatId, expiry });
-      } catch (e) {
-        console.error(`Sub fuer ${chatId} fehlgeschlagen`, e);
-      }
+      if (prior) reused.push(prior);
+      else toCreate.push(chatId);
     }
+
+    const created = await Promise.allSettled(
+      toCreate.map(async (chatId) => {
+        const { id, expiry } = await createChatSubscription(chatId, accessToken);
+        return { id, chatId, expiry } as SubInfo;
+      }),
+    );
+    const subscriptions: SubInfo[] = [...reused];
+    for (const r of created) {
+      if (r.status === "fulfilled") subscriptions.push(r.value);
+      else console.error("Sub fehlgeschlagen", r.reason);
+    }
+    console.log(`register: subscriptions angelegt=${subscriptions.length}`);
 
     const rec: UserRecord = {
       userId,
