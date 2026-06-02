@@ -1,0 +1,21 @@
+[build]
+  functions = "netlify/functions"
+  publish = "public"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Saubere URLs fuer die Watch + Graph-Webhook.
+[[redirects]]
+  from = "/register"
+  to = "/.netlify/functions/register"
+  status = 200
+
+[[redirects]]
+  from = "/notifications"
+  to = "/.netlify/functions/notifications"
+  status = 200
+
+# Subscription-Renewal: alle 45 Min (Chat-Subs leben max ~60 Min).
+[functions."renew"]
+  schedule = "*/45 * * * *"

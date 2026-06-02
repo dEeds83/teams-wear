@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Teams Wear</string>
+    <string name="reply_label">Antworten</string>
+    <string name="reply_hint">Nachricht…</string>
+</resources>
