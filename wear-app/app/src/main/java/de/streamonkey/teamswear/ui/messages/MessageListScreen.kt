@@ -4,6 +4,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +37,14 @@ fun MessageListScreen(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         extractReply(result.data)?.let { viewModel.send(it) }
+    }
+
+    // Beim Laden (und nach dem Senden) ans Ende springen: neueste Nachricht unten.
+    // Index = Header(0) + alle Nachrichten -> letzte Nachricht liegt bei size.
+    LaunchedEffect(state.messages.size) {
+        if (state.messages.isNotEmpty()) {
+            listState.scrollToItem(state.messages.size)
+        }
     }
 
     ScalingLazyColumn(
