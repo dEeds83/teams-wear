@@ -5,6 +5,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
 import de.streamonkey.teamswear.data.RelayRepository
+import de.streamonkey.teamswear.data.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,10 +19,13 @@ import javax.inject.Inject
 class TeamsMessagingService : FirebaseMessagingService() {
 
     @Inject lateinit var relay: RelayRepository
+    @Inject lateinit var settings: SettingsStore
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
     override fun onMessageReceived(message: RemoteMessage) {
+        // Lokaler Aus-Schalter (zusaetzlich zur serverseitigen Abmeldung).
+        if (!settings.pushEnabledBlocking()) return
         val data = message.data
         val chatId = data["chatId"] ?: return
         NotificationPublisher.show(

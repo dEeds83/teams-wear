@@ -81,6 +81,20 @@ export async function createChatSubscription(
   return { id: json.id, expiry: json.expirationDateTime };
 }
 
+export async function deleteSubscription(
+  subscriptionId: string,
+  accessToken: string,
+): Promise<void> {
+  const res = await fetch(`${GRAPH}/subscriptions/${subscriptionId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  // 404 = schon weg; nicht als Fehler werten.
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Subscription delete: ${res.status} ${await res.text()}`);
+  }
+}
+
 export async function renewSubscription(
   subscriptionId: string,
   accessToken: string,

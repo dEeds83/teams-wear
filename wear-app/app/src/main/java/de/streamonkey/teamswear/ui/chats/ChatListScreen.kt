@@ -11,9 +11,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Card
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.ListHeader
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -23,6 +23,7 @@ import de.streamonkey.teamswear.ui.util.relativeTime
 @Composable
 fun ChatListScreen(
     onOpenChat: (chatId: String, title: String) -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: ChatListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -46,6 +47,15 @@ fun ChatListScreen(
         items(state.chats, key = { it.id }) { chat ->
             ChatRow(chat) { onOpenChat(chat.id, chat.title) }
         }
+
+        item {
+            CompactChip(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onOpenSettings,
+                colors = ChipDefaults.secondaryChipColors(),
+                label = { Text("Einstellungen") },
+            )
+        }
     }
 }
 
@@ -56,7 +66,7 @@ private fun ChatRow(chat: ChatSummary, onClick: () -> Unit) {
         onClick = onClick,
         colors = ChipDefaults.secondaryChipColors(),
         label = {
-            Text(chat.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(chat.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
         },
         secondaryLabel = {
             val time = relativeTime(chat.timestamp)

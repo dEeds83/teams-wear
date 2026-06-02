@@ -12,10 +12,12 @@ import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import de.streamonkey.teamswear.ui.chats.ChatListScreen
 import de.streamonkey.teamswear.ui.login.LoginScreen
 import de.streamonkey.teamswear.ui.messages.MessageListScreen
+import de.streamonkey.teamswear.ui.settings.SettingsScreen
 
 private object Routes {
     const val LOGIN = "login"
     const val CHATS = "chats"
+    const val SETTINGS = "settings"
     const val MESSAGES = "messages/{chatId}?title={title}"
     fun messages(chatId: String, title: String) =
         "messages/$chatId?title=${Uri.encode(title)}"
@@ -38,8 +40,19 @@ fun TeamsWearApp(rootViewModel: RootViewModel = hiltViewModel()) {
             }
 
             composable(Routes.CHATS) {
-                ChatListScreen(onOpenChat = { chatId, title ->
-                    navController.navigate(Routes.messages(chatId, title))
+                ChatListScreen(
+                    onOpenChat = { chatId, title ->
+                        navController.navigate(Routes.messages(chatId, title))
+                    },
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                )
+            }
+
+            composable(Routes.SETTINGS) {
+                SettingsScreen(onLoggedOut = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 })
             }
 

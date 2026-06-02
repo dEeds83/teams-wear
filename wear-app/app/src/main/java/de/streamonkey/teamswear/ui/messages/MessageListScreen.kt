@@ -2,13 +2,20 @@ package de.streamonkey.teamswear.ui.messages
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
@@ -74,14 +81,30 @@ fun MessageListScreen(
 
 @Composable
 private fun MessageBubble(msg: MessageItem) {
-    val colors = if (msg.isMine) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
-    Chip(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = {},
-        colors = colors,
-        label = { Text(msg.text) },
-        secondaryLabel = if (!msg.isMine && msg.author.isNotBlank()) {
-            { Text(msg.author, maxLines = 1) }
-        } else null,
-    )
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+        if (msg.text.isNotBlank()) {
+            val colors = if (msg.isMine) ChipDefaults.primaryChipColors()
+            else ChipDefaults.secondaryChipColors()
+            Chip(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {},
+                colors = colors,
+                label = { Text(msg.text) },
+                secondaryLabel = if (!msg.isMine && msg.author.isNotBlank()) {
+                    { Text(msg.author, maxLines = 1) }
+                } else null,
+            )
+        }
+        msg.imageUrls.forEach { url ->
+            AsyncImage(
+                model = url,
+                contentDescription = null,
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .padding(top = 2.dp),
+            )
+        }
+    }
 }

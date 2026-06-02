@@ -19,7 +19,7 @@ interface GraphApi {
     @GET("me/chats")
     suspend fun chats(
         @Query("\$expand") expand: String = "members",
-        @Query("\$top") top: Int = 30,
+        @Query("\$top") top: Int = 50,
         @Query("\$orderby") orderBy: String = "lastMessagePreview/createdDateTime desc",
     ): GraphList<Chat>
 

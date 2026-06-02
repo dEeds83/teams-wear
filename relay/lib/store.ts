@@ -44,3 +44,11 @@ export async function listUserIds(): Promise<string[]> {
   const { blobs } = await users().list();
   return blobs.map((b) => b.key);
 }
+
+export async function deleteUser(userId: string): Promise<void> {
+  const rec = await getUser(userId);
+  if (rec) {
+    await Promise.all(rec.subscriptions.map((s) => subs().delete(s.id)));
+  }
+  await users().delete(userId);
+}

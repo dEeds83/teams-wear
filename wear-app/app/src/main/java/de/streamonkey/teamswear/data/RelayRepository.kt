@@ -58,4 +58,20 @@ class RelayRepository @Inject constructor(
             }
         }
     }
+
+    /** Meldet das Geraet beim Relay ab (loescht Subscriptions). Fuer Push-aus + Logout. */
+    suspend fun unregister() {
+        if (!pushEnabled) return
+        val refresh = tokenStore.refreshToken ?: return
+        val payload = JSONObject().put("refreshToken", refresh).toString()
+        val req = Request.Builder()
+            .url("$baseUrl/unregister")
+            .post(payload.toRequestBody("application/json".toMediaType()))
+            .build()
+        withContext(Dispatchers.IO) {
+            client.newCall(req).execute().use { resp ->
+                check(resp.isSuccessful) { "Relay /unregister: ${resp.code}" }
+            }
+        }
+    }
 }

@@ -34,7 +34,8 @@ class ChatRepository @Inject constructor(
 
     /** Frische Chat-Liste vom Server; aktualisiert den Cache. */
     suspend fun refreshChats(): List<ChatSummary> {
-        val chats = graph.chats().value.map { it.toSummary() }
+        val me = myId()
+        val chats = graph.chats().value.map { it.toSummary(me) }
         cache.saveChats(chats)
         return chats
     }
@@ -48,8 +49,9 @@ class ChatRepository @Inject constructor(
         val me = myId()
         return graph.messages(chatId).value
             .filter { it.messageType == null || it.messageType == "message" }
-            .filter { it.body.content.isNotBlank() }
             .map { it.toItem(me) }
+            // Leere Nachrichten raus, aber Bild-only behalten.
+            .filter { it.text.isNotBlank() || it.imageUrls.isNotEmpty() }
             .sortedBy { it.timestamp }
     }
 
@@ -59,10 +61,17 @@ class ChatRepository @Inject constructor(
         return sent.toItem(myId())
     }
 
-    private fun Chat.toSummary(): ChatSummary {
+    private fun Chat.toSummary(myId: String): ChatSummary {
+        // Titel = Gruppenname (topic) oder die anderen Teilnehmer (ohne mich selbst).
+        val others = members
+            .filter { it.userId != myId }
+            .mapNotNull { it.displayName }
+            .filter { it.isNotBlank() }
         val title = topic
-            ?: members.mapNotNull { it.displayName }.filter { it.isNotBlank() }
-                .joinToString(", ").ifBlank { "Chat" }
+            ?: others.joinToString(", ").ifBlank {
+                // Fallback: Chat nur mit mir selbst -> alle Namen.
+                members.mapNotNull { it.displayName }.joinToString(", ").ifBlank { "Chat" }
+            }
         val preview = lastMessagePreview?.body?.content?.let { stripHtml(it) } ?: ""
         return ChatSummary(
             id = id,
@@ -73,17 +82,31 @@ class ChatRepository @Inject constructor(
     }
 
     private fun ChatMessage.toItem(myId: String): MessageItem {
-        val raw = if (body.contentType == "html") stripHtml(body.content) else body.content
+        val text: String
+        val images: List<String>
+        if (body.contentType == "html") {
+            images = imgSrcRegex.findAll(body.content).map { it.groupValues[1] }.toList()
+            text = stripHtml(body.content)
+        } else {
+            images = emptyList()
+            text = body.content
+        }
         return MessageItem(
             id = id,
             author = from?.user?.displayName ?: "",
-            text = raw,
+            text = text,
             timestamp = createdDateTime,
             isMine = from?.user?.id == myId,
+            imageUrls = images,
         )
     }
 
     /** Sehr einfacher HTML-Stripper fuer Teams-Nachrichten-Bodies. */
     private fun stripHtml(s: String): String =
         s.replace(Regex("<[^>]*>"), "").replace("&nbsp;", " ").trim()
+
+    private companion object {
+        // Extrahiert src aus <img ...> (Teams hostedContents-URLs + externe GIFs).
+        val imgSrcRegex = Regex("""<img[^>]*\bsrc="([^"]+)"""", RegexOption.IGNORE_CASE)
+    }
 }

@@ -6,8 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
-    // Phase 2: auskommentieren sobald app/google-services.json vorhanden ist.
-    // id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
 }
 
 // Read secrets/config from local.properties (NOT committed). Falls back to
@@ -80,6 +79,10 @@ dependencies {
 
     // Wear RemoteInput (Voice / Keyboard / Quick-Reply Chooser)
     implementation("androidx.wear:wear-input:1.1.0")
+
+    // Bild-Anzeige in Chats (inkl. animierte GIF/WebP)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-gif:2.6.0")
 
     // Horologist (Wear helpers)
     implementation("com.google.android.horologist:horologist-compose-layout:0.6.17")

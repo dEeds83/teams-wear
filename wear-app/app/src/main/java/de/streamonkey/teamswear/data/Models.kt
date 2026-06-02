@@ -19,4 +19,5 @@ data class MessageItem(
     val text: String,
     val timestamp: String?,
     val isMine: Boolean,
+    val imageUrls: List<String> = emptyList(),
 )

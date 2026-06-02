@@ -12,6 +12,11 @@
   status = 200
 
 [[redirects]]
+  from = "/unregister"
+  to = "/.netlify/functions/unregister"
+  status = 200
+
+[[redirects]]
   from = "/notifications"
   to = "/.netlify/functions/notifications"
   status = 200
