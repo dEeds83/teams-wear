@@ -31,7 +31,7 @@ export default async (req: Request): Promise<Response> => {
     // Subscriptions parallel anlegen (Graph validiert jede synchron gegen unseren
     // Webhook -> sequenziell wuerde die Function timeouten). Auf MAX kappen;
     // restliche Chats abonniert der Renew-Cron nach.
-    const MAX_SUBS = 20;
+    const MAX_SUBS = 50;
     const chatIds = allChatIds.slice(0, MAX_SUBS);
     const reused: SubInfo[] = [];
     const toCreate: string[] = [];

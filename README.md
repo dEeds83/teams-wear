@@ -111,6 +111,6 @@ relay/
 
 - Voice-Calls sind nicht umsetzbar (Graph bietet keine delegierte Call-API; kein
   Wear-OS-Calling-SDK).
-- Relay abonniert pro Login die neuesten ~20 Chats sofort; weitere holt der
+- Relay abonniert pro Login die neuesten bis zu 50 Chats; weitere holt der
   Renewal-Cron (alle 45 min) nach. Chat-Subscriptions leben ~60 min und werden
   vom Cron erneuert.
