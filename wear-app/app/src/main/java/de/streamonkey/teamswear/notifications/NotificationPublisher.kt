@@ -9,12 +9,14 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
 import de.streamonkey.teamswear.R
+import de.streamonkey.teamswear.ui.MainActivity
 import de.streamonkey.teamswear.ui.util.QUICK_REPLIES
 import de.streamonkey.teamswear.ui.util.REPLY_KEY
 
 // Gemeinsame Konstanten fuer NotificationPublisher und ReplyReceiver.
 const val CHANNEL_ID = "teams_messages"
 const val EXTRA_CHAT_ID = "chatId"
+const val EXTRA_CHAT_TITLE = "chatTitle"
 const val EXTRA_NOTIF_ID = "notifId"
 
 /**
@@ -54,12 +56,25 @@ object NotificationPublisher {
             replyPending,
         ).addRemoteInput(remoteInput).build()
 
+        // Tap auf die Notification -> App oeffnet direkt diesen Chat.
+        val openIntent = Intent(context, MainActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            putExtra(EXTRA_CHAT_ID, chatId)
+            putExtra(EXTRA_CHAT_TITLE, sender)
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        val contentPending = PendingIntent.getActivity(
+            context, notifId, openIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(sender)
             .setContentText(preview)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setContentIntent(contentPending)
             .addAction(replyAction)
             .build()
 

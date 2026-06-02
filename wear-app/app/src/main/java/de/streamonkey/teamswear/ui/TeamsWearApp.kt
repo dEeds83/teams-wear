@@ -2,6 +2,7 @@ package de.streamonkey.teamswear.ui
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -24,9 +25,22 @@ private object Routes {
 }
 
 @Composable
-fun TeamsWearApp(rootViewModel: RootViewModel = hiltViewModel()) {
+fun TeamsWearApp(
+    pendingChat: ChatTarget? = null,
+    onChatConsumed: () -> Unit = {},
+    rootViewModel: RootViewModel = hiltViewModel(),
+) {
     val navController = rememberSwipeDismissableNavController()
     val start = if (rootViewModel.startLoggedIn) Routes.CHATS else Routes.LOGIN
+
+    // Notification-Tap: direkt in den passenden Chat springen (nur wenn eingeloggt).
+    LaunchedEffect(pendingChat) {
+        val target = pendingChat ?: return@LaunchedEffect
+        if (rootViewModel.startLoggedIn) {
+            navController.navigate(Routes.messages(target.chatId, target.title))
+        }
+        onChatConsumed()
+    }
 
     MaterialTheme {
         SwipeDismissableNavHost(navController = navController, startDestination = start) {
