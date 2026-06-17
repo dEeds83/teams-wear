@@ -37,10 +37,28 @@ android {
         buildConfigField("String", "RELAY_BASE_URL", "\"${cfg("RELAY_BASE_URL", "")}\"")
     }
 
+    // Release-Signing nur konfigurieren, wenn ein Keystore hinterlegt ist
+    // (Werte aus local.properties; Datei selbst ist gitignored).
+    val releaseStoreFile = cfg("RELEASE_STORE_FILE", "")
+    val hasReleaseKeystore = releaseStoreFile.isNotBlank() &&
+        rootProject.file(releaseStoreFile).exists()
+
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = cfg("RELEASE_STORE_PASSWORD", "")
+                keyAlias = cfg("RELEASE_KEY_ALIAS", "")
+                keyPassword = cfg("RELEASE_KEY_PASSWORD", "")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (hasReleaseKeystore) signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
